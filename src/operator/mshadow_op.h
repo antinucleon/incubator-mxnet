@@ -167,6 +167,58 @@ struct softrelu : public mxnet_op::tunable {
   }
 };
 
+struct hard_swish : public mxnet_op::tunable {
+  template<typename DType>
+  MSHADOW_XINLINE static DType Map(DType a) {
+    if (a < DType(-3.0f)) {
+      return DType(0.f);
+    } else if (a < DType(3.0f)) {
+      return DType(a * (a + 3.0f) / 6.0f);
+    } else {
+      return DType(a);
+    }
+  }
+};
+
+ struct hard_swish_grad : public mxnet_op::tunable {
+  template<typename DType>
+  MSHADOW_XINLINE static DType Map(DType a) {
+    if (a < DType(-3.0f)) {
+      return DType(0.0f);
+    } else if (a < DType(3.0f)) {
+      return DType((2.0f * a + 3.0f) / 6.0f);
+    } else {
+      return DType(1.0f);
+    }
+  }
+};
+
+struct hard_sigmoid_v1 : public mxnet_op::tunable {
+  template<typename DType>
+  MSHADOW_XINLINE static DType Map(DType a) {
+    if (a < DType(-3.0f)) {
+      return DType(0.f);
+    } else if (a < DType(3.0f)) {
+      return DType((a + 3.0f) / 6.0f);
+    } else {
+      return DType(1.0f);
+    }
+  }
+};
+
+ struct hard_sigmoid_v1_grad : public mxnet_op::tunable {
+  template<typename DType>
+  MSHADOW_XINLINE static DType Map(DType a) {
+    if (a < DType(-3.0f)) {
+      return DType(0.0f);
+    } else if (a < DType(3.0f)) {
+      return DType((1.0f) / 6.0f);
+    } else {
+      return DType(0.f);
+    }
+  }
+};
+
 MXNET_UNARY_MATH_OP(softrelu_grad, -math::expm1(-a));
 
 MXNET_UNARY_MATH_OP(erfinv_grad, 0.5 * math::sqrt(PI) * math::exp(math::sqr(erfinv::Map(a))));

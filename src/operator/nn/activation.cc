@@ -48,6 +48,8 @@ int GradNumInputs(int act_type) {
         case kSoftSign:
         case kTanh:
         case kSigmoid:
+        case kHardSigmoid:
+        case kHardSwish:
             return 3;
         default:
             CHECK(false) << "missing activation type";
@@ -82,6 +84,8 @@ struct ActivationGrad {
         case kSoftSign:
         case kTanh:
         case kSigmoid:
+        case kHardSwish:
+        case kHardSigmoid:
             heads.push_back(n->inputs[activation::kData]);
             break;
         default:

@@ -47,7 +47,9 @@ namespace activation {
 enum ActivationOpInputs {kData};
 enum ActivationOpOutputs {kOut};
 enum ActivationOpResource {kTempSpace};
-enum ActivationOpType {kReLU, kSigmoid, kTanh, kSoftReLU, kSoftSign};
+enum ActivationOpType {kReLU, kSigmoid, kTanh,
+                       kSoftReLU, kSoftSign,
+                       kHardSigmoid, kHardSwish};
 
 // Get the number of inputs to the gradient depending on the activation type
 int GradNumInputs(int act_type);
@@ -63,6 +65,8 @@ struct ActivationParam : public dmlc::Parameter<ActivationParam> {
     .add_enum("tanh", activation::kTanh)
     .add_enum("softrelu", activation::kSoftReLU)
     .add_enum("softsign", activation::kSoftSign)
+    .add_enum("hard_swish", activation::kHardSwish)
+    .add_enum("hard_sigmoid", activation::kHardSigmoid)
     .describe("Activation function to be applied.");
   }
 
@@ -148,6 +152,14 @@ void ActivationComputeImpl(const nnvm::NodeAttrs& attrs, const OpContext &ctx,
       ActivationForward<xpu, mshadow_op::softsign, mshadow_op::softsign_grad>(
           ctx, inputs[0], req[0], outputs[0]);
       break;
+    case activation::kHardSwish:
+      ActivationForward<xpu, mshadow_op::hard_swish, mshadow_op::hard_swish_grad>(
+          ctx, inputs[0], req[0], outputs[0]);
+      break;
+    case activation::kHardSigmoid:
+      ActivationForward<xpu, mshadow_op::hard_sigmoid_v1, mshadow_op::hard_sigmoid_v1_grad>(
+          ctx, inputs[0], req[0], outputs[0]);
+      break;
     default:
       LOG(FATAL) << "unknown activation type";
   }
@@ -177,6 +189,14 @@ void ActivationGradComputeImpl(const nnvm::NodeAttrs& attrs, const OpContext &ct
       break;
     case activation::kSoftSign:
       ActivationBackward<xpu, mshadow_op::softsign, mshadow_op::softsign_grad>(
+          ctx, inputs[0], inputs[2], req[0], outputs[0]);
+      break;
+    case activation::kHardSwish:
+      ActivationBackward<xpu, mshadow_op::hard_swish, mshadow_op::hard_swish_grad>(
+          ctx, inputs[0], inputs[2], req[0], outputs[0]);
+      break;
+    case activation::kHardSigmoid:
+      ActivationBackward<xpu, mshadow_op::hard_sigmoid_v1, mshadow_op::hard_sigmoid_v1_grad>(
           ctx, inputs[0], inputs[2], req[0], outputs[0]);
       break;
     default:
