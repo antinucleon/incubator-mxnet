@@ -33,12 +33,13 @@ function(detect_cuDNN)
 
   find_path(CUDNN_INCLUDE cudnn.h
             PATHS ${CUDNN_ROOT} $ENV{CUDNN_ROOT}
+	    PATH_SUFFIXES include
             DOC "Path to cuDNN include directory." )
 
 
   find_library(CUDNN_LIBRARY NAMES libcudnn.so cudnn.lib # libcudnn_static.a
                              PATHS ${CUDNN_ROOT} $ENV{CUDNN_ROOT} ${CUDNN_INCLUDE}
-                             PATH_SUFFIXES lib lib/x64
+                             PATH_SUFFIXES lib lib/x64 lib64
                              DOC "Path to cuDNN library.")
 
   if(CUDNN_INCLUDE AND CUDNN_LIBRARY)

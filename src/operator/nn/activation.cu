@@ -67,7 +67,7 @@ void ActivationCompute<gpu>(const nnvm::NodeAttrs& attrs,
     ActivationForward<gpu, mshadow_op::hard_swish, mshadow_op::hard_swish_grad>(ctx,
       inputs[0], req[0], outputs[0]);
   } else if (act_type == activation::kHardSigmoid) {
-    ActivationForward<gpu, mshadow_op::hard_sigmoid, mshadow_op::hard_sigmoid_grad>(ctx,
+    ActivationForward<gpu, mshadow_op::hard_sigmoid_v1, mshadow_op::hard_sigmoid_v1_grad>(ctx,
       inputs[0], req[0], outputs[0]);
   } else {
     MSHADOW_REAL_TYPE_SWITCH(inputs[0].type_flag_, DType, {
@@ -103,10 +103,10 @@ void ActivationGradCompute<gpu>(const nnvm::NodeAttrs& attrs,
     });
   } else if (act_type == activation::kHardSwish) {
     ActivationBackward<gpu, mshadow_op::hard_swish, mshadow_op::hard_swish_grad>(
-      ctx, inputs.at(0), inputs.at(2), req[0], outputs[0])
+      ctx, inputs.at(0), inputs.at(2), req[0], outputs[0]);
   } else if (act_type == activation::kHardSigmoid) {
     ActivationBackward<gpu, mshadow_op::hard_sigmoid_v1, mshadow_op::hard_sigmoid_v1_grad>(
-      ctx, inputs.at(0), inputs.at(2), req[0], outputs[0])
+      ctx, inputs.at(0), inputs.at(2), req[0], outputs[0]);
   } else {
     MSHADOW_REAL_TYPE_SWITCH(inputs.at(0).type_flag_, DType, {
       get_cudnn_op<DType>(param).Backward(ctx, inputs.at(0), inputs.at(2),
