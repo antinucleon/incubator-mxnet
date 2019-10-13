@@ -46,7 +46,7 @@ struct BatchDWParam : public dmlc::Parameter<BatchDWParam> {
     DMLC_DECLARE_FIELD(channels);
     DMLC_DECLARE_FIELD(layout)
     .add_enum("NCHW", mshadow::kNCHW)
-    .set_default(mshadow::kNCHW);
+    .set_default(dmlc::optional<int>());
   }
 
   bool operator==(const BatchDWParam& other) const {
