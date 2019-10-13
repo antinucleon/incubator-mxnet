@@ -61,6 +61,34 @@ void DepthwiseConv2dBackwardDataGpu(mshadow::Stream<gpu> *stream,
   MSHADOW_CUDA_POST_KERNEL_CHECK(DepthwiseConv2dBackwardDataKernel);
 }
 
+template<typename DType>
+void DepthwiseConv2dBackwardFilterGpu(mshadow::Stream<gpu> *stream,
+                                      const DepthwiseArgs& args,
+                                      const std::vector<TBlob> &out_grad,
+                                      const std::vector<TBlob> &in_data,
+                                      const std::vector<TBlob> &in_grad) {
+  using namespace mshadow;
+  using namespace mshadow::expr;
+  using namespace tf::depthwise_conv;
+  using namespace tf::depthwise_conv::cuda;
+  Tensor<gpu, 4, DType> out_g = out_grad[bdw::kOut].get<gpu, 4, DType>(stream);
+  Tensor<gpu, 4, DType> in_d = in_data[bdw::kData].get<gpu, 4, DType>(stream);
+  Tensor<gpu, 4, DType> weight_grad = in_grad[bdw::kWeight].get<gpu, 4, DType>(stream);
+  // select kernel
+    int num_out_grad = out_grad[conv::kOut].shape_.Size();
+    auto s = mshadow::Stream<gpu>::GetStream(stream);
+    int block_num = std::min(args.out_channel * args.batch, mshadow::cuda::kMaxGridNum);
+
+    DepthwiseConv2dBackwardFilterKernel<DType, -1, -1>
+          <<<block_num, mshadow::cuda::kBaseThreadNum, 0, s>>>(args,
+                                                               out_g.dptr_,
+                                                               in_d.dptr_,
+                                                               weight_grad.dptr_,
+                                                               num_out_grad);
+    MSHADOW_CUDA_POST_KERNEL_CHECK(DepthwiseConv2dBackwardFilterKernel);
+  }
+}
+
 
 
 template<>
@@ -115,10 +143,19 @@ void BatchDWGradCompute<gpu>(const nnvm::NodeAttrs& attrs,
                                      op.args_,
                                      std::vector<TBlob>{out_grad},
                                      in_data, in_grad);
+
     }
-    
-
-
+    if (req[bdw::kWeight] != kNullOp) {
+      if (req[bdw::kWeight] != kAddTo) {
+        mshadow::Tensor<gpu, 4, DType> wgrad = in_grad[bdw::kWeight].get<gpu, 4, DType>(stream);
+        wgrad = 0.0f;
+      }
+      DepthwiseConv2dBackwardFilterGpu<float>(stream,
+        args_,
+        out_grad,
+        in_data,
+        in_grad);
+    }
   })
 }
 

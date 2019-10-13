@@ -251,6 +251,7 @@ DepthwiseConv2dBackwardFilterKernel(const DepthwiseArgs args,
   const int out_channel = args.out_channel;
   const int out_height = args.out_height;
   const int out_width = args.out_width;
+  const int batch_filter_offset = in_channel * filter_height * filter_width;
 
   CUDA_KERNEL_LOOP(thread_id, num_out_backprop) {
     // Compute the indexes of this thread in the output.
@@ -282,7 +283,7 @@ DepthwiseConv2dBackwardFilterKernel(const DepthwiseArgs args,
             (out_b * in_channel * in_height * in_width) +
             (in_c * in_height * in_width) + (in_row * in_width);
         const int filter_backprop_temp =
-            (in_c * filter_width * filter_height) +
+            out_b * batch_filter_offset + (in_c * filter_width * filter_height) +
             (filter_width * f_h);
 
         CUDA_UNROLL for (int f_w = 0; f_w < filter_width; ++f_w) {
@@ -301,7 +302,7 @@ DepthwiseConv2dBackwardFilterKernel(const DepthwiseArgs args,
             (out_b * in_channel * in_height * in_width) +
             (in_c * in_height * in_width) + (in_row * in_width);
         const int filter_backprop_temp =
-            (in_c * filter_width * filter_height) +
+            out_b * batch_filter_offset + (in_c * filter_width * filter_height) +
             (filter_width * f_h);
         CUDA_UNROLL for (int f_w = 0; f_w < filter_width; ++f_w) {
           const int in_col = in_col_start + f_w;
