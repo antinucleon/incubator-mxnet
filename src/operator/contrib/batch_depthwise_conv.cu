@@ -111,7 +111,10 @@ void BatchDWGradCompute<gpu>(const nnvm::NodeAttrs& attrs,
         mshadow::Tensor<gpu, 4, DType> igrad = in_grad[bdw::kData].get<gpu, 4, DType>(stream);
         igrad = 0.0f;
       }
-      DepthwiseConv2dBackwardDataGpu(stream, op.args_, out_grad, in_data, in_grad);
+      DepthwiseConv2dBackwardDataGpu(stream,
+                                     op.args_,
+                                     std::vector<TBlob>{out_grad},
+                                     in_data, in_grad);
     }
     
 
