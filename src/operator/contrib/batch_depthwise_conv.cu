@@ -5,6 +5,45 @@
 namespace mxnet {
 namespace op {
 
+
+template<typename DType>
+void BatchDW2dForwardGpu(mshadow::Stream<gpu> *stream,
+                         const DepthwiseArgs& args,
+                         const std::vector<TBlob> &in_data,
+                         const std::vector<TBlob> &out_data) {
+  using namespace mshadow;
+  using namespace mshadow::expr;
+  using namespace tf::depthwise_conv;
+  using namespace tf::depthwise_conv::cuda;
+  Tensor<gpu, 4, DType> data = in_data[bdw::kData].get<gpu, 4, DType>(stream);
+  Tensor<gpu, 4, DType> weight = in_data[bdw::kWeight].get<gpu, 4, DType>(stream);
+  Tensor<gpu, 4, DType> out = out_data[bdw::kOut].get<gpu, 4, DType>(stream);
+  int num_output = out_data[bdw::kOut].shape_.Size();
+  int block_num = std::min(num_output/mshadow::cuda::kBaseThreadNum + 1,
+    mshadow::cuda::kMaxGridNum);
+  auto s = mshadow::Stream<gpu>::GetStream(stream);
+  DepthwiseConv2dForwardKernel<DType, -1, -1>
+          <<<block_num, mshadow::cuda::kBaseThreadNum, 0, s>>>(data.dptr_,
+                                                               weight.dptr_,
+                                                               args,
+                                                               num_output,
+                                                               out.dptr_);
+  MSHADOW_CUDA_POST_KERNEL_CHECK(DepthwiseConv2dForwardKernel);
+}
+
+template<typename DType>
+void BatchDWOp<DType>::Forward(const OpContext &ctx,
+                               const std::vector<TBlob> &in_data,
+                               const std::vector<OpReqType> &req,
+                               const std::vector<TBlob> &out_data) {
+  using namespace mshadow;
+  using namespace mshadow::expr;
+  auto stream = ctx.get_stream<gpu>();
+  CHECK_EQ(req[conv::kOut], kWriteTo);
+  // output forward
+  DepthwiseConv2dForwardGpu<DType>(stream, args_, in_data, out_data);
+}
+
 template<>
 void BatchDWCompute<gpu>(const nnvm::NodeAttrs& attrs,
                                const OpContext& ctx,

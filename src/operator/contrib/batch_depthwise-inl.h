@@ -41,7 +41,7 @@ struct BatchDWParam : public dmlc::Parameter<BatchDWParam> {
   dmlc::optional<int> layout;
   DMLC_DECLARE_PARAMETER(BatchDWParam) {
     DMLC_DECLARE_FIELD(kernel_size);
-    DMLC_DECLARE_FIELD(stride).set_default(0);
+    DMLC_DECLARE_FIELD(stride).set_default(1);
     DMLC_DECLARE_FIELD(pad).set_default(0);
     DMLC_DECLARE_FIELD(channels);
     DMLC_DECLARE_FIELD(layout)
