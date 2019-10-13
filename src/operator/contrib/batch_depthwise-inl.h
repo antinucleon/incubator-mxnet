@@ -86,8 +86,6 @@ struct hash<mxnet::op::BatchDWParam> {
 namespace mxnet {
 namespace op {
 
-using namespace tf::depthwise_conv;
-
 template<typename xpu, typename DType>
 class BatchDWOp {
  public:
