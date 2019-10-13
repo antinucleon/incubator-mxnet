@@ -91,7 +91,7 @@ using namespace tf::depthwise_conv;
 template<typename xpu, typename DType>
 class BatchDWOp {
  public:
-  void Init(BatchDWparam p) {
+  void Init(BatchDWParam p) {
     args_.in_channel = p.channels;
     args_.filter_height = p.kernel_size;
     args_.filter_width = p.kernel_size;
