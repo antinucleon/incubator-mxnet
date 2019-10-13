@@ -75,18 +75,17 @@ void DepthwiseConv2dBackwardFilterGpu(mshadow::Stream<gpu> *stream,
   Tensor<gpu, 4, DType> in_d = in_data[bdw::kData].get<gpu, 4, DType>(stream);
   Tensor<gpu, 4, DType> weight_grad = in_grad[bdw::kWeight].get<gpu, 4, DType>(stream);
   // select kernel
-    int num_out_grad = out_grad[conv::kOut].shape_.Size();
-    auto s = mshadow::Stream<gpu>::GetStream(stream);
-    int block_num = std::min(args.out_channel * args.batch, mshadow::cuda::kMaxGridNum);
+  int num_out_grad = out_grad[bdw::kOut].shape_.Size();
+  auto s = mshadow::Stream<gpu>::GetStream(stream);
+  int block_num = std::min(args.out_channel * args.batch, mshadow::cuda::kMaxGridNum);
 
-    DepthwiseConv2dBackwardFilterKernel<DType, -1, -1>
+  DepthwiseConv2dBackwardFilterKernel<DType, -1, -1>
           <<<block_num, mshadow::cuda::kBaseThreadNum, 0, s>>>(args,
                                                                out_g.dptr_,
                                                                in_d.dptr_,
                                                                weight_grad.dptr_,
                                                                num_out_grad);
-    MSHADOW_CUDA_POST_KERNEL_CHECK(DepthwiseConv2dBackwardFilterKernel);
-  }
+  MSHADOW_CUDA_POST_KERNEL_CHECK(DepthwiseConv2dBackwardFilterKernel);
 }
 
 
