@@ -1,4 +1,5 @@
 #include "./batch_depthwise-inl.h"
+#include "./batch_depthwise.cuh"
 #include <vector>
 
 
