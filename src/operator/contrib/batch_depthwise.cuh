@@ -29,9 +29,9 @@
 #include "../../common/cuda_utils.h"
 #include "../mxnet_op.h"
 
-#ifdef __CUDA_ARCH__
-#include <cub/cub.cuh>
-#endif
+// #ifdef __CUDA_ARCH__
+// #include <cub/cub.cuh>
+// #endif
 
 
 namespace tf {
