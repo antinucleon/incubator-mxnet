@@ -148,4 +148,4 @@ NNVM_REGISTER_OP(_backward_BatchDW)
 
 
 }  // namespace op
-]
+} // namespace mxnet
