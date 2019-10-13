@@ -151,8 +151,8 @@ void BatchDWGradCompute<gpu>(const nnvm::NodeAttrs& attrs,
         wgrad = 0.0f;
       }
       DepthwiseConv2dBackwardFilterGpu<float>(stream,
-        args_,
-        out_grad,
+        op.args_,
+        std::vector<TBlob>{out_grad},
         in_data,
         in_grad);
     }
