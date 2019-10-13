@@ -32,6 +32,37 @@ void BatchDW2dForwardGpu(mshadow::Stream<gpu> *stream,
   MSHADOW_CUDA_POST_KERNEL_CHECK(DepthwiseConv2dForwardKernel);
 }
 
+
+template<typename DType>
+void DepthwiseConv2dBackwardDataGpu(mshadow::Stream<gpu> *stream,
+                                    const DepthwiseArgs& args,
+                                    const std::vector<TBlob> &out_grad,
+                                    const std::vector<TBlob> &in_data,
+                                    const std::vector<TBlob> &in_grad) {
+  using namespace mshadow;
+  using namespace mshadow::expr;
+  using namespace tf::depthwise_conv;
+  using namespace tf::depthwise_conv::cuda;
+  Tensor<gpu, 4, DType> out_g = out_grad[conv::kOut].get<gpu, 4, DType>(stream);
+  Tensor<gpu, 4, DType> weight = in_data[conv::kWeight].get<gpu, 4, DType>(stream);
+  Tensor<gpu, 4, DType> in_data_g = in_grad[conv::kData].get<gpu, 4, DType>(stream);
+  // select kernel
+
+  int num_in_grad = in_grad[conv::kData].shape_.Size();
+  auto s = mshadow::Stream<gpu>::GetStream(stream);
+  int block_num = std::min(num_in_grad/mshadow::cuda::kBaseThreadNum + 1,
+                             mshadow::cuda::kMaxGridNum);
+  DepthwiseConv2dBackwardDataKernel<DType>
+        <<<block_num, mshadow::cuda::kBaseThreadNum, 0, s>>>(args,
+                                                             out_g.dptr_,
+                                                             weight.dptr_,
+                                                             in_data_g.dptr_,
+                                                             num_in_grad);
+  MSHADOW_CUDA_POST_KERNEL_CHECK(DepthwiseConv2dBackwardDataKernel);
+}
+
+
+
 template<>
 void BatchDWCompute<gpu>(const nnvm::NodeAttrs& attrs,
                                const OpContext& ctx,
@@ -72,7 +103,19 @@ void BatchDWGradCompute<gpu>(const nnvm::NodeAttrs& attrs,
   MSHADOW_REAL_TYPE_SWITCH(dtype, DType, {
     BatchDWOp<gpu, DType> op;
     op.Init(param, in_shape, out_shape);
-    op.Backward(ctx, std::vector<TBlob>{out_grad}, in_data, req, in_grad);
+    // op.Backward(ctx, std::vector<TBlob>{out_grad}, in_data, req, in_grad);
+    auto stream = ctx.get_stream<gpu>();
+    // data
+    if (req[bdw::kData] != kNullOp) {
+      if (req[bdw::kData] != kAddTo) {
+        mshadow::Tensor<gpu, 4, DType> igrad = in_grad[bdw::kData].get<gpu, 4, DType>(stream);
+        igrad = 0.0f;
+      }
+      DepthwiseConv2dBackwardDataGpu(stream, op.args_, out_grad, in_data, in_grad);
+    }
+    
+
+
   })
 }
 

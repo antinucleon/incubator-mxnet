@@ -191,6 +191,7 @@ DepthwiseConv2dBackwardDataKernel(const DepthwiseArgs args,
 
   const int in_pixels = in_height * in_width;
   const int out_pixels = out_height * out_width;
+  const int batch_filter_offset = in_channel * filter_height * filter_width;
 
   CUDA_KERNEL_LOOP(thread_id, num_in_grad) {
     // Compute the indexes of this thread in the input.
@@ -209,7 +210,7 @@ DepthwiseConv2dBackwardDataKernel(const DepthwiseArgs args,
     const int out_w_end = mxnet::common::cuda::CudaMin(
         out_width - 1, (in_w + pad_width) / stride_width);
 
-    const int filter_offset_temp = channel_idx * filter_height * filter_width;
+    const int filter_offset_temp = batch_idx * batch_filter_offset + channel_idx * filter_height * filter_width;
     const int out_grad_offset_temp = (batch_idx * channel * out_pixels) +
         (channel_idx * out_pixels);
 
