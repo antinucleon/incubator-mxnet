@@ -26,7 +26,7 @@ static bool BatchDWShape(const nnvm::NodeAttrs& attrs,
   CHECK_EQ(dshp.ndim(), 4U) \
     << "Input data should be 4D in batch-num_filter-y-x";
   Shape<4> dshape = ConvertLayout(dshp.get<4>(), param_.layout.value(), kNCHW);
-  Shape<4> wshape = Shape4(dhsape[0], param_.channels,
+  Shape<4> wshape = Shape4(dshape[0], param_.channels,
         param_.kernel_size, param_.kernel_size);
   SHAPE_ASSIGN_CHECK(*in_shape, bdw::kWeight, wshape);
   CHECK_EQ(dshape[1], param_.channels) << "input num_filter must equal group size";
@@ -105,10 +105,9 @@ struct BatchDWGrad {
   const char *op_name;
   std::vector<nnvm::NodeEntry> operator()(const nnvm::NodePtr& n,
                                           const std::vector<nnvm::NodeEntry>& ograds) const {
-    const BatchDWParam& param = nnvm::get<BatchDWParam>(n->attrs.parsed);
     std::vector<nnvm::NodeEntry> heads(ograds.begin(), ograds.end());
-    heads.push_back(n->inputs[conv::kData]);
-    heads.push_back(n->inputs[conv::kWeight]);
+    heads.push_back(n->inputs[bdw::kData]);
+    heads.push_back(n->inputs[bdw::kWeight]);
     return MakeGradNode(op_name, n, heads, n->attrs.dict);
   }
 };
@@ -133,7 +132,7 @@ NNVM_REGISTER_OP(BatchDW)
 .set_attr<nnvm::FGradient>("FGradient", BatchDWGrad{"_backward_BatchDW"})
 .add_argument("data", "NDArray-or-Symbol", "Input data to the ConvolutionOp.")
 .add_argument("weight", "NDArray-or-Symbol", "Weight matrix.")
-.add_arguments(BacthDWParam::__FIELDS__());
+.add_arguments(BatchDWParam::__FIELDS__());
 
 NNVM_REGISTER_OP(_backward_BatchDW)
 .set_num_outputs([](const NodeAttrs& attrs) {

@@ -95,8 +95,8 @@ class BatchDWOp {
     args_.in_channel = p.channels;
     args_.filter_height = p.kernel_size;
     args_.filter_width = p.kernel_size;
-    args_.stride_height = param.stride;
-    args_.stride_width = param.stride;
+    args_.stride_height = p.stride;
+    args_.stride_width = p.stride;
     args_.pad_height = p.pad;
     args_.pad_width = p.pad;
     args_.out_channel =  p.channels;
