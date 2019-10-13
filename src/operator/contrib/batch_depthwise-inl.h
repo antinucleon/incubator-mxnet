@@ -20,7 +20,7 @@
 
 #if MXNET_USE_CUDA
 
-#include "./batch_depthwise.cuh"
+#include "./batch_depthwise.h"
 #include "../../common/cuda_utils.h"
 
 

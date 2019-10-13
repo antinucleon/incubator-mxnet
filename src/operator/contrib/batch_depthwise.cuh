@@ -28,14 +28,14 @@
 #define MXNET_OPERATOR_NN_DEPTHWISE_CONVOLUTION_TF_CUH_
 #include "../../common/cuda_utils.h"
 #include "../mxnet_op.h"
-
+#include "./batch_depthwise.h"
 
 
 namespace tf {
 namespace depthwise_conv {
 
 
-#ifdef __CUDA_ARCH__
+
 #define FULL_WARP_MASK 0xFFFFFFFF
 #if CUDA_VERSION < 9000
 template<typename DType>
@@ -56,28 +56,9 @@ __forceinline__ __device__ DType  __shfl_down_sync(unsigned, DType val, int delt
     unsigned mask = __ballot_sync(FULL_WARP_MASK, (predicate))
 #endif
 
-#endif  // __CUDA_ARCH__
 
-struct DepthwiseArgs {
-  // Input layer dimensions
-  int batch;
-  int in_height;
-  int in_width;
-  int in_channel;
-  int filter_height;
-  int filter_width;
-  int stride_height;
-  int stride_width;
-  int pad_height;
-  int pad_width;
 
-  // Output layer dimensions
-  int out_height;
-  int out_width;
-  int out_channel;
-};
 
-#ifdef __CUDA_ARCH__
 
 namespace cuda {
 template<typename DType, int kFilterHeight, int kFilterWidth>
@@ -349,7 +330,7 @@ DepthwiseConv2dBackwardFilterKernel(const DepthwiseArgs args,
 
 
 
-#endif // __CUDA_ARCH__
+
 }  // namespace depthwise_conv
 }  // namespace tf
 
