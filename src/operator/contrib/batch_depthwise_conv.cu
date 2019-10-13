@@ -48,7 +48,7 @@ void DepthwiseConv2dBackwardDataGpu(mshadow::Stream<gpu> *stream,
   Tensor<gpu, 4, DType> in_data_g = in_grad[bdw::kData].get<gpu, 4, DType>(stream);
   // select kernel
 
-  int num_in_grad = in_grad[conv::kData].shape_.Size();
+  int num_in_grad = in_grad[bdw::kData].shape_.Size();
   auto s = mshadow::Stream<gpu>::GetStream(stream);
   int block_num = std::min(num_in_grad/mshadow::cuda::kBaseThreadNum + 1,
                              mshadow::cuda::kMaxGridNum);
