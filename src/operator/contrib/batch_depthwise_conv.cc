@@ -22,7 +22,6 @@ static bool BatchDWShape(const nnvm::NodeAttrs& attrs,
   using namespace mshadow;
   const BatchDWParam& param_ = nnvm::get<BatchDWParam>(attrs.parsed);
   CHECK_EQ(in_shape->size(), 2U) << "Input:[data, weight]";
-
   out_shape->resize(1, mxnet::TShape());
   const mxnet::TShape &dshp = (*in_shape)[bdw::kData];
   if (!mxnet::ndim_is_known(dshp)) return false;
@@ -43,9 +42,9 @@ static bool BatchDWShape(const nnvm::NodeAttrs& attrs,
   oshape[0] = dshape[0];
   oshape[1] = param_.channels;
   oshape[2] = dshape[2] != -1 ?
-      (AddPad(dshape[2], param_.pad)) / param_.stride + 1 : -1;
+      (AddPad(dshape[2], param_.pad) - 1) / param_.stride + 1 : -1;
   oshape[3] = dshape[3] != -1 ?
-      (AddPad(dshape[3], param_.pad)) / param_.stride + 1 : -1;
+      (AddPad(dshape[3], param_.pad) - 1) / param_.stride + 1 : -1;
   SHAPE_ASSIGN_CHECK(*out_shape, 0, ConvertLayout(oshape, kNCHW, param_.layout.value()));
   // Perform incomplete shape inference. Fill in the missing values in data shape.
   // 1) We can always fill in the batch_size.
@@ -53,10 +52,10 @@ static bool BatchDWShape(const nnvm::NodeAttrs& attrs,
   oshape = ConvertLayout((*out_shape)[0].get<4>(), param_.layout.value(), kNCHW);
   dshape[0] = oshape[0];
   if (oshape[2] != -1 && param_.stride == 1) {
-    dshape[2] = oshape[2] - 1 - 2 * param_.pad;
+    dshape[2] = oshape[2] - 2 * param_.pad;
   }
   if (oshape[3] != -1 && param_.stride == 1) {
-    dshape[3] = oshape[3] - 1 - 2 * param_.pad;
+    dshape[3] = oshape[3] - 2 * param_.pad;
   }
   SHAPE_ASSIGN_CHECK(*in_shape, bdw::kData,
       ConvertLayout(dshape, kNCHW, param_.layout.value()));
