@@ -11,6 +11,10 @@ static inline index_t AddPad(index_t dsize, index_t pad) {
   return dsize + 2 * pad;
 }
 
+static inline std::vector<std::string> ListArguments(const BatchDWParam& param_) {
+  return {"data", "weight"};
+}
+
 
 static bool BatchDWShape(const nnvm::NodeAttrs& attrs,
                              mxnet::ShapeVector *in_shape,
@@ -52,7 +56,7 @@ static bool BatchDWShape(const nnvm::NodeAttrs& attrs,
     dshape[2] = oshape[2] - 1 - 2 * param_.pad;
   }
   if (oshape[3] != -1 && param_.stride == 1) {
-    dshape[3] = oshape[3] - 1 - 2 * param_.pad[1];
+    dshape[3] = oshape[3] - 1 - 2 * param_.pad;
   }
   SHAPE_ASSIGN_CHECK(*in_shape, bdw::kData,
       ConvertLayout(dshape, kNCHW, param_.layout.value()));
