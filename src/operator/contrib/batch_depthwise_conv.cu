@@ -31,19 +31,6 @@ void BatchDW2dForwardGpu(mshadow::Stream<gpu> *stream,
   MSHADOW_CUDA_POST_KERNEL_CHECK(DepthwiseConv2dForwardKernel);
 }
 
-template<typename DType>
-void BatchDWOp<gpu, DType>::Forward(const OpContext &ctx,
-                               const std::vector<TBlob> &in_data,
-                               const std::vector<OpReqType> &req,
-                               const std::vector<TBlob> &out_data) {
-  using namespace mshadow;
-  using namespace mshadow::expr;
-  auto stream = ctx.get_stream<gpu>();
-  CHECK_EQ(req[conv::kOut], kWriteTo);
-  // output forward
-  DepthwiseConv2dForwardGpu<DType>(stream, args_, in_data, out_data);
-}
-
 template<>
 void BatchDWCompute<gpu>(const nnvm::NodeAttrs& attrs,
                                const OpContext& ctx,
@@ -59,7 +46,10 @@ void BatchDWCompute<gpu>(const nnvm::NodeAttrs& attrs,
   MSHADOW_REAL_TYPE_SWITCH(dtype, DType, {
     BatchDWOp<gpu, DType> op;
     op.Init(param, in_shape, out_shape);
-    op.Forward(ctx, inputs, req, outputs);
+    // op.Forward(ctx, inputs, req, outputs);
+    auto stream = ctx.get_stream<gpu>();
+    CHECK_EQ(req[bdw::kOut], kWriteTo);
+    BatchDW2dForwardGpu<DType>(stream, op.args_, inputs, outputs);
   })
 }
 

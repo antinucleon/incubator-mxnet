@@ -128,7 +128,7 @@ class BatchDWOp {
     using namespace mshadow::expr;
   }
 
- private:
+ public:
   DepthwiseArgs args_;
 
 };  // BatchDWop
