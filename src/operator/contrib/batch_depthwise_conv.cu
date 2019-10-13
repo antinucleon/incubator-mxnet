@@ -43,9 +43,9 @@ void DepthwiseConv2dBackwardDataGpu(mshadow::Stream<gpu> *stream,
   using namespace mshadow::expr;
   using namespace tf::depthwise_conv;
   using namespace tf::depthwise_conv::cuda;
-  Tensor<gpu, 4, DType> out_g = out_grad[conv::kOut].get<gpu, 4, DType>(stream);
-  Tensor<gpu, 4, DType> weight = in_data[conv::kWeight].get<gpu, 4, DType>(stream);
-  Tensor<gpu, 4, DType> in_data_g = in_grad[conv::kData].get<gpu, 4, DType>(stream);
+  Tensor<gpu, 4, DType> out_g = out_grad[bdw::kOut].get<gpu, 4, DType>(stream);
+  Tensor<gpu, 4, DType> weight = in_data[bdw::kWeight].get<gpu, 4, DType>(stream);
+  Tensor<gpu, 4, DType> in_data_g = in_grad[bdw::kData].get<gpu, 4, DType>(stream);
   // select kernel
 
   int num_in_grad = in_grad[conv::kData].shape_.Size();
