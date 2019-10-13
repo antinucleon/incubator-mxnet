@@ -91,7 +91,9 @@ using namespace tf::depthwise_conv;
 template<typename xpu, typename DType>
 class BatchDWOp {
  public:
-  void Init(BatchDWParam p) {
+  void Init(BatchDWParam p,
+            const mxnet::ShapeVector& in_shape,
+            const mxnet::ShapeVector& out_shape) {
     args_.in_channel = p.channels;
     args_.filter_height = p.kernel_size;
     args_.filter_width = p.kernel_size;
@@ -100,6 +102,12 @@ class BatchDWOp {
     args_.pad_height = p.pad;
     args_.pad_width = p.pad;
     args_.out_channel =  p.channels;
+    args_.batch = in_shape[bdw::kData][0];
+    args_.in_height = in_shape[bdw::kData][2];
+    args_.in_width = in_shape[bdw::kData][3];
+    args_.out_height = out_shape[bdw::kOut][2];
+    args_.out_width = out_shape[bdw::kOut][3];
+
   }
 
   void Forward(const OpContext &ctx,
@@ -108,13 +116,6 @@ class BatchDWOp {
                const std::vector<TBlob> &out_data) {
     using namespace mshadow;
     using namespace mshadow::expr;
-    // CHECK_EQ(req[bdw::kOut], kWriteTo);
-    // args_.batch = in_data[bdw::kData].shape_[0];
-    // args_.in_height = in_data[bdw::kData].shape_[2];
-    // args_.in_width = in_data[bdw::kData].shape_[3];
-    // args_.out_height = out_data[bdw::kOut].shape_[2];
-    // args_.out_width = out_data[bdw::kOut].shape_[3];
-
 
   }
 
@@ -125,13 +126,6 @@ class BatchDWOp {
                 const std::vector<TBlob>& in_grad) {
     using namespace mshadow;
     using namespace mshadow::expr;
-    // CHECK_EQ(out_grad.size(), 1U);
-    // args_.batch = in_data[bdw::kData].shape_[0];
-    // args_.in_height = in_data[bdw::kData].shape_[2];
-    // args_.in_width = in_data[bdw::kData].shape_[3];
-    // args_.out_height = out_grad[bdw::kOut].shape_[2];
-    // args_.out_width = out_grad[bdw::kOut].shape_[3];
-
   }
 
  private:
@@ -146,9 +140,11 @@ void BatchDWCompute(const nnvm::NodeAttrs& attrs,
                         const std::vector<OpReqType>& req,
                         const std::vector<TBlob>& outputs) {
   const BatchDWParam& param = nnvm::get<BatchDWParam>(attrs.parsed);
+  mxnet::ShapeVector in_shape(inputs.size());
+  mxnet::ShapeVector out_shape(1, outputs[0].shape_);
   MSHADOW_REAL_TYPE_SWITCH(inputs[bdw::kData].type_flag_, DType, {
     BatchDWOp<xpu, DType> op;
-    op.Init(param);
+    op.Init(param, in_shape, out_shape);
     op.Forward(ctx, inputs, req, outputs);
   });
 }
@@ -163,9 +159,12 @@ void BatchDWGradCompute(const nnvm::NodeAttrs& attrs,
   const TBlob &out_grad = inputs[0];
   const std::vector<TBlob> &in_grad = outputs;
 
+  mxnet::ShapeVector in_shape(inputs.size());
+  mxnet::ShapeVector out_shape(1, outputs[0].shape_);
+
   MSHADOW_REAL_TYPE_SWITCH(out_grad.type_flag_, DType, {
     BatchDWOp<xpu, DType> op;
-    op.Init(param);
+    op.Init(param, in_shape, out_shape);
     op.Backward(ctx, std::vector<TBlob>{out_grad}, in_data, req, in_grad);
   });
 }
