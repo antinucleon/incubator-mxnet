@@ -49,7 +49,7 @@ void BatchDWCompute<gpu>(const nnvm::NodeAttrs& attrs,
     // op.Forward(ctx, inputs, req, outputs);
     auto stream = ctx.get_stream<gpu>();
     CHECK_EQ(req[bdw::kOut], kWriteTo);
-    BatchDW2dForwardGpu<DType>(stream, op.args_, inputs, outputs);
+    BatchDW2dForwardGpu<float>(stream, op.args_, inputs, outputs);
   })
 }
 
