@@ -26,3 +26,6 @@
 [submodule "3rdparty/nvidia_cub"]
 	path = 3rdparty/nvidia_cub
 	url = https://github.com/NVlabs/cub.git
+[submodule "src/operator/sg"]
+	path = src/operator/sg
+	url = git@github.com:antinucleon/sg.git
